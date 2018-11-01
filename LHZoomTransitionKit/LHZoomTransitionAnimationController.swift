@@ -19,11 +19,14 @@ public class LHZoomTransitionAnimationController: NSObject {
     
     let duration: TimeInterval
     let operation: Operation
+    let dampingRatio: CGFloat
     let sourceTargetRect: RectCalculator
     let destinationTargetRect: RectCalculator
-    public init(operation: Operation, duration: TimeInterval, sourceTargetRect: @escaping RectCalculator, destinationTargetRect: @escaping RectCalculator) {
+    
+    public init(operation: Operation, duration: TimeInterval, dampingRatio: CGFloat, sourceTargetRect: @escaping RectCalculator, destinationTargetRect: @escaping RectCalculator) {
         self.duration = duration
         self.operation = operation
+        self.dampingRatio = dampingRatio
         self.sourceTargetRect = sourceTargetRect
         self.destinationTargetRect = destinationTargetRect
     }
@@ -63,7 +66,7 @@ extension LHZoomTransitionAnimationController: UIViewControllerAnimatedTransitio
         let toView: UIView = transitionContext.view(forKey: .to) ?? toVC.view
         let containerView = transitionContext.containerView
         
-        let animator = UIViewPropertyAnimator(duration: duration, dampingRatio: 0.8)
+        let animator = UIViewPropertyAnimator(duration: duration, dampingRatio: dampingRatio)
         
         let toViewFinalFrame = transitionContext.finalFrame(for: toVC)
         if operation == .present {
