@@ -11,21 +11,19 @@ import LHConvenientMethods
 
 public class LHZoomTransitionAnimationController: NSObject {
     
-    public enum Operation {
+    enum Operation {
         case present, dismiss
     }
     
     public typealias RectCalculator = () -> CGRect
     
     let duration: TimeInterval
-    let operation: Operation
     let dampingRatio: CGFloat
     let sourceTargetRect: RectCalculator
     let destinationTargetRect: RectCalculator
     
-    public init(operation: Operation, duration: TimeInterval, dampingRatio: CGFloat, sourceTargetRect: @escaping RectCalculator, destinationTargetRect: @escaping RectCalculator) {
+    public init(duration: TimeInterval, dampingRatio: CGFloat, sourceTargetRect: @escaping RectCalculator, destinationTargetRect: @escaping RectCalculator) {
         self.duration = duration
-        self.operation = operation
         self.dampingRatio = dampingRatio
         self.sourceTargetRect = sourceTargetRect
         self.destinationTargetRect = destinationTargetRect
@@ -67,6 +65,15 @@ extension LHZoomTransitionAnimationController: UIViewControllerAnimatedTransitio
         let containerView = transitionContext.containerView
         
         let animator = UIViewPropertyAnimator(duration: duration, dampingRatio: dampingRatio)
+        
+        let operation: Operation
+        if fromVC.presentedViewController === toVC {
+            operation = .present
+        } else if fromVC.presentingViewController === toVC {
+            operation = .dismiss
+        } else {
+            return
+        }
         
         let toViewFinalFrame = transitionContext.finalFrame(for: toVC)
         if operation == .present {
