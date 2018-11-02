@@ -9,24 +9,32 @@
 import UIKit
 import LHConvenientMethods
 
+public protocol LHZoomTransitionTargetProviding {
+    func targetView(for animationController: LHZoomTransitionAnimationController, operation: LHZoomTransitionAnimationController.Operation) -> UIView?
+    func animationControllerWillAnimate(_ animationController: LHZoomTransitionAnimationController)
+    func animationControllerDidAnimate(_ animationController: LHZoomTransitionAnimationController)
+}
+extension LHZoomTransitionTargetProviding {
+    public func animationControllerWillAnimate(_ animationController: LHZoomTransitionAnimationController) { }
+    public func animationControllerDidAnimate(_ animationController: LHZoomTransitionAnimationController) { }
+}
+
 public class LHZoomTransitionAnimationController: NSObject {
     
-    enum Operation {
+    public enum Operation {
         case present, dismiss
     }
     
-    public typealias RectCalculator = () -> CGRect
-    
     let duration: TimeInterval
     let dampingRatio: CGFloat
-    let sourceTargetRect: RectCalculator
-    let destinationTargetRect: RectCalculator
+    public let source: LHZoomTransitionTargetProviding
+    public let destination: LHZoomTransitionTargetProviding
     
-    public init(duration: TimeInterval, dampingRatio: CGFloat, sourceTargetRect: @escaping RectCalculator, destinationTargetRect: @escaping RectCalculator) {
+    public init(duration: TimeInterval, dampingRatio: CGFloat, source: LHZoomTransitionTargetProviding, destination: LHZoomTransitionTargetProviding) {
         self.duration = duration
         self.dampingRatio = dampingRatio
-        self.sourceTargetRect = sourceTargetRect
-        self.destinationTargetRect = destinationTargetRect
+        self.source = source
+        self.destination = destination
     }
 
 }
@@ -47,23 +55,35 @@ extension LHZoomTransitionAnimationController: UIViewControllerAnimatedTransitio
         let animator = UIViewPropertyAnimator(duration: duration, dampingRatio: dampingRatio)
         
         let operation: Operation
+        
+        let removingPresentingView: Bool
         if fromVC.presentedViewController === toVC {
             operation = .present
+            removingPresentingView = [UIModalPresentationStyle.fullScreen, .currentContext].contains(toVC.modalPresentationStyle)
         } else if fromVC.presentingViewController === toVC {
             operation = .dismiss
+            removingPresentingView = [UIModalPresentationStyle.fullScreen, .currentContext].contains(fromVC.modalPresentationStyle)
         } else {
             return
         }
         
         let toViewFinalFrame = transitionContext.finalFrame(for: toVC)
-        if operation == .present {
+        switch operation {
+        case .present:
             toView.frame = toViewFinalFrame
             containerView.addSubview(toView)
             toView.layoutIfNeeded()
+        case .dismiss:
+            if removingPresentingView {
+                containerView.addSubview(toView)
+            }
         }
         
-        let targetInitialFrame = fromVC.view.convert(sourceTargetRect(), to: containerView)
-        let targetFinalFrame = toVC.view.convert(destinationTargetRect(), to: containerView)
+        guard let sourceTargetView = source.targetView(for: self, operation: operation) else { return }
+        guard let destinationTargetView = destination.targetView(for: self, operation: operation) else { return }
+        
+        let targetInitialFrame = sourceTargetView.convert(sourceTargetView.bounds, to: containerView)
+        let targetFinalFrame = destinationTargetView.convert(destinationTargetView.bounds, to: containerView)
         
         let scale = CGScale(width: targetFinalFrame.width / targetInitialFrame.width, height: targetFinalFrame.height / targetInitialFrame.height)
         switch operation {
@@ -116,18 +136,21 @@ extension LHZoomTransitionAnimationController: UIViewControllerAnimatedTransitio
             }
         }
         
-        if let fromTargetSnapshot = fromVC.view.resizableSnapshotView(from: sourceTargetRect(), afterScreenUpdates: true, withCapInsets: .zero) {
+        if let fromTargetSnapshot = sourceTargetView.snapshotView(afterScreenUpdates: true) {
             prepareTargetSnapshot(fromTargetSnapshot)
         }
         
-        if let toTargetSnapshot = toVC.view.resizableSnapshotView(from: destinationTargetRect(), afterScreenUpdates: true, withCapInsets: .zero) {
+        if let toTargetSnapshot = destinationTargetView.snapshotView(afterScreenUpdates: true) {
             prepareTargetSnapshot(toTargetSnapshot)
         }
         
         animator.addCompletion { position in
             transitionContext.completeTransition(!transitionContext.transitionWasCancelled)
+            self.source.animationControllerDidAnimate(self)
+            self.destination.animationControllerDidAnimate(self)
         }
-        
+        source.animationControllerWillAnimate(self)
+        destination.animationControllerWillAnimate(self)
         animator.startAnimation()
     }
     
