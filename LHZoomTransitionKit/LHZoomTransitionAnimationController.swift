@@ -11,12 +11,12 @@ import LHConvenientMethods
 
 public protocol LHZoomTransitionTargetProviding: AnyObject {
     func targetView(for animationController: LHZoomTransitionAnimationController, operation: LHZoomTransitionAnimationController.Operation) -> UIView?
-    func animationControllerWillAnimate(_ animationController: LHZoomTransitionAnimationController)
-    func animationControllerDidAnimate(_ animationController: LHZoomTransitionAnimationController)
+    func animationController(_ animationController: LHZoomTransitionAnimationController, willAnimate operation: LHZoomTransitionAnimationController.Operation)
+    func animationController(_ animationController: LHZoomTransitionAnimationController, didAnimate operation: LHZoomTransitionAnimationController.Operation)
 }
 extension LHZoomTransitionTargetProviding {
-    public func animationControllerWillAnimate(_ animationController: LHZoomTransitionAnimationController) { }
-    public func animationControllerDidAnimate(_ animationController: LHZoomTransitionAnimationController) { }
+    public func animationController(_ animationController: LHZoomTransitionAnimationController, willAnimate operation: LHZoomTransitionAnimationController.Operation) { }
+    public func animationController(_ animationController: LHZoomTransitionAnimationController, didAnimate operation: LHZoomTransitionAnimationController.Operation) { }
 }
 
 public class LHZoomTransitionAnimationController: NSObject {
@@ -169,11 +169,11 @@ extension LHZoomTransitionAnimationController: UIViewControllerAnimatedTransitio
         
         animator.addCompletion { position in
             transitionContext.completeTransition(!transitionContext.transitionWasCancelled)
-            self.source.animationControllerDidAnimate(self)
-            self.destination.animationControllerDidAnimate(self)
+            self.source.animationController(self, didAnimate: operation)
+            self.destination.animationController(self, didAnimate: operation)
         }
-        source.animationControllerWillAnimate(self)
-        destination.animationControllerWillAnimate(self)
+        source.animationController(self, willAnimate: operation)
+        destination.animationController(self, willAnimate: operation)
         animator.startAnimation()
     }
     
