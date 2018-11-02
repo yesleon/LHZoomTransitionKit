@@ -54,18 +54,25 @@ extension LHZoomTransitionAnimationController: UIViewControllerAnimatedTransitio
         
         let animator = UIViewPropertyAnimator(duration: duration, dampingRatio: dampingRatio)
         
-        let operation: Operation
+        let operation: Operation = {
+            if fromVC.presentedViewController === toVC {
+                return .present
+            } else if fromVC.presentingViewController === toVC {
+                return .dismiss
+            } else {
+                fatalError("Unsupported operation")
+            }
+        }()
         
-        let removingPresentingView: Bool
-        if fromVC.presentedViewController === toVC {
-            operation = .present
-            removingPresentingView = [UIModalPresentationStyle.fullScreen, .currentContext].contains(toVC.modalPresentationStyle)
-        } else if fromVC.presentingViewController === toVC {
-            operation = .dismiss
-            removingPresentingView = [UIModalPresentationStyle.fullScreen, .currentContext].contains(fromVC.modalPresentationStyle)
-        } else {
-            return
-        }
+        let removingPresentingView: Bool = {
+            switch operation {
+            case .present:
+                return [UIModalPresentationStyle.fullScreen, .currentContext].contains(toVC.modalPresentationStyle)
+            case .dismiss:
+                return [UIModalPresentationStyle.fullScreen, .currentContext].contains(fromVC.modalPresentationStyle)
+            }
+        }()
+            
         
         let toViewFinalFrame = transitionContext.finalFrame(for: toVC)
         switch operation {
@@ -78,71 +85,87 @@ extension LHZoomTransitionAnimationController: UIViewControllerAnimatedTransitio
                 containerView.addSubview(toView)
             }
         }
+        let toViewSnapshot = toView.snapshotView(afterScreenUpdates: true)
+        let fromViewSnapshot = fromView.snapshotView(afterScreenUpdates: true)
         
-        guard let sourceTargetView = source.targetView(for: self, operation: operation) else { return }
-        guard let destinationTargetView = destination.targetView(for: self, operation: operation) else { return }
-        
-        let targetInitialFrame = sourceTargetView.convert(sourceTargetView.bounds, to: containerView)
-        let targetFinalFrame = destinationTargetView.convert(destinationTargetView.bounds, to: containerView)
-        
-        let scale = CGScale(width: targetFinalFrame.width / targetInitialFrame.width, height: targetFinalFrame.height / targetInitialFrame.height)
         switch operation {
         case .present:
-            let toViewSnapshot = toView.snapshotView(afterScreenUpdates: true)!
-            let insets = UIEdgeInsets(containing: toView.frame, contained: targetFinalFrame)
-            let toViewInitialFrame = targetInitialFrame.inset(by: insets.inverted() / scale)
-            
-            containerView.addSubview(toViewSnapshot)
-            toViewSnapshot.frame = toViewInitialFrame
-            toView.alpha = 0
-            animator.addAnimations {
-                toViewSnapshot.frame = toViewFinalFrame
+            if let toViewSnapshot = toViewSnapshot {
+                toViewSnapshot.frame = toView.frame
+                toViewSnapshot.alpha = 0
+                containerView.addSubview(toViewSnapshot)
+                animator.addAnimations {
+                    toViewSnapshot.alpha = 1
+                }
+                animator.addCompletion { position in
+                    toViewSnapshot.removeFromSuperview()
+                }
             }
+            toView.alpha = 0
             animator.addCompletion { position in
                 toView.alpha = 1
-                toViewSnapshot.removeFromSuperview()
-            }
-            toViewSnapshot.alpha = 0
-            animator.addAnimations {
-                toViewSnapshot.alpha = 1
             }
         case .dismiss:
-            let fromViewSnapshot = fromView.snapshotView(afterScreenUpdates: true)!
-            let insets = UIEdgeInsets(containing: fromView.frame, contained: targetInitialFrame)
-            let fromViewFinalFrame = targetFinalFrame.inset(by: insets.inverted() * scale)
+            if let fromViewSnapshot = fromViewSnapshot {
+                fromViewSnapshot.frame = fromView.frame
+                containerView.addSubview(fromViewSnapshot)
+                animator.addAnimations {
+                    fromViewSnapshot.alpha = 0
+                }
+                animator.addCompletion { position in
+                    fromViewSnapshot.removeFromSuperview()
+                }
+            }
+            fromView.alpha = 0
+        }
+        
+        if let sourceTargetView = source.targetView(for: self, operation: operation),
+            let destinationTargetView = destination.targetView(for: self, operation: operation),
+            let toViewSnapshot = toViewSnapshot, let fromViewSnapshot = fromViewSnapshot {
             
-            containerView.addSubview(fromViewSnapshot)
-            fromViewSnapshot.frame = fromView.frame
-            fromView.removeFromSuperview()
-            animator.addAnimations {
-                fromViewSnapshot.frame = fromViewFinalFrame
+            let targetInitialFrame = sourceTargetView.convert(sourceTargetView.bounds, to: containerView)
+            let targetFinalFrame = destinationTargetView.convert(destinationTargetView.bounds, to: containerView)
+            let scale = CGScale(width: targetFinalFrame.width / targetInitialFrame.width, height: targetFinalFrame.height / targetInitialFrame.height)
+            
+            switch operation {
+            case .present:
+                let insets = UIEdgeInsets(containing: toView.frame, contained: targetFinalFrame)
+                let toViewInitialFrame = targetInitialFrame.inset(by: insets.inverted() / scale)
+                
+                toViewSnapshot.frame = toViewInitialFrame
+                animator.addAnimations {
+                    toViewSnapshot.frame = toViewFinalFrame
+                }
+            case .dismiss:
+                let insets = UIEdgeInsets(containing: fromView.frame, contained: targetInitialFrame)
+                let fromViewFinalFrame = targetFinalFrame.inset(by: insets.inverted() * scale)
+                
+                animator.addAnimations {
+                    fromViewSnapshot.frame = fromViewFinalFrame
+                }
             }
-            animator.addCompletion { position in
-                fromViewSnapshot.removeFromSuperview()
+            
+            func prepareTargetSnapshot(_ snapshot: UIView) {
+                containerView.addSubview(snapshot)
+                snapshot.frame = targetInitialFrame
+                animator.addAnimations {
+                    snapshot.frame = targetFinalFrame
+                }
+                animator.addCompletion { position in
+                    snapshot.removeFromSuperview()
+                }
             }
-            animator.addAnimations {
-                fromViewSnapshot.alpha = 0
+            
+            if let fromTargetSnapshot = sourceTargetView.snapshotView(afterScreenUpdates: true) {
+                prepareTargetSnapshot(fromTargetSnapshot)
+            }
+            
+            if let toTargetSnapshot = destinationTargetView.snapshotView(afterScreenUpdates: true) {
+                prepareTargetSnapshot(toTargetSnapshot)
             }
         }
         
-        func prepareTargetSnapshot(_ snapshot: UIView) {
-            containerView.addSubview(snapshot)
-            snapshot.frame = targetInitialFrame
-            animator.addAnimations {
-                snapshot.frame = targetFinalFrame
-            }
-            animator.addCompletion { position in
-                snapshot.removeFromSuperview()
-            }
-        }
         
-        if let fromTargetSnapshot = sourceTargetView.snapshotView(afterScreenUpdates: true) {
-            prepareTargetSnapshot(fromTargetSnapshot)
-        }
-        
-        if let toTargetSnapshot = destinationTargetView.snapshotView(afterScreenUpdates: true) {
-            prepareTargetSnapshot(toTargetSnapshot)
-        }
         
         animator.addCompletion { position in
             transitionContext.completeTransition(!transitionContext.transitionWasCancelled)
