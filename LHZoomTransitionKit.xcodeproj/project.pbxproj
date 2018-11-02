@@ -14,6 +14,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		710CA92B218C73A4006AD36F /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		71286C89218B55E5007CCB03 /* LHZoomTransitionKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = LHZoomTransitionKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		71286C8C218B55E5007CCB03 /* LHZoomTransitionKit.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LHZoomTransitionKit.h; sourceTree = "<group>"; };
 		71286C8D218B55E5007CCB03 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -38,6 +39,7 @@
 		71286C7F218B55E5007CCB03 = {
 			isa = PBXGroup;
 			children = (
+				710CA92B218C73A4006AD36F /* README.md */,
 				71286C8B218B55E5007CCB03 /* LHZoomTransitionKit */,
 				71286C8A218B55E5007CCB03 /* Products */,
 				71286C99218B5662007CCB03 /* Frameworks */,
