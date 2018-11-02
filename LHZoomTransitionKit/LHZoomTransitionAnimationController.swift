@@ -9,7 +9,7 @@
 import UIKit
 import LHConvenientMethods
 
-public protocol LHZoomTransitionTargetProviding {
+public protocol LHZoomTransitionTargetProviding: AnyObject {
     func targetView(for animationController: LHZoomTransitionAnimationController, operation: LHZoomTransitionAnimationController.Operation) -> UIView?
     func animationControllerWillAnimate(_ animationController: LHZoomTransitionAnimationController)
     func animationControllerDidAnimate(_ animationController: LHZoomTransitionAnimationController)
