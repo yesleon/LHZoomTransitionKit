@@ -47,7 +47,7 @@ public class LHZoomInSegue: LHZoomSegue {
 public class LHZoomOutSegue: LHZoomSegue {
     
     public override func perform() {
-        source.transitioningDelegate = self
+        destination.presentedViewController?.transitioningDelegate = self
         destination.dismiss(animated: true, completion: nil)
     }
     
