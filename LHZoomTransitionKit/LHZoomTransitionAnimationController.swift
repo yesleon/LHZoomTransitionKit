@@ -31,26 +31,6 @@ public class LHZoomTransitionAnimationController: NSObject {
 
 }
 
-extension UIEdgeInsets {
-    init(containing: CGRect, contained: CGRect) {
-        self.init(top: contained.minY - containing.minY,
-                  left: contained.minX - containing.minX,
-                  bottom: containing.maxY - contained.maxY,
-                  right: containing.maxX - contained.maxX)
-    }
-    static func *(insets: UIEdgeInsets, scale: CGScale) -> UIEdgeInsets {
-        return UIEdgeInsets.init(top: insets.top * scale.height, left: insets.left * scale.width, bottom: insets.bottom * scale.height, right: insets.right * scale.width)
-    }
-    static func /(insets: UIEdgeInsets, scale: CGScale) -> UIEdgeInsets {
-        return UIEdgeInsets.init(top: insets.top / scale.height, left: insets.left / scale.width, bottom: insets.bottom / scale.height, right: insets.right / scale.width)
-    }
-    func inverted() -> UIEdgeInsets {
-        return UIEdgeInsets(top: -top, left: -left, bottom: -bottom, right: -right)
-    }
-}
-
-typealias CGScale = CGSize
-
 extension LHZoomTransitionAnimationController: UIViewControllerAnimatedTransitioning {
     
     public func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
