@@ -42,7 +42,7 @@ public class LHZoomTransitionAnimationController: NSObject {
 extension LHZoomTransitionAnimationController: UIViewControllerAnimatedTransitioning {
     
     public func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
-        return duration
+        return transitionContext?.isAnimated == true ? duration : 0
     }
     
     public func animateTransition(using transitionContext: UIViewControllerContextTransitioning) {
@@ -52,7 +52,7 @@ extension LHZoomTransitionAnimationController: UIViewControllerAnimatedTransitio
         let toView: UIView = transitionContext.view(forKey: .to) ?? toVC.view
         let containerView = transitionContext.containerView
         
-        let animator = UIViewPropertyAnimator(duration: duration, dampingRatio: dampingRatio)
+        let animator = UIViewPropertyAnimator(duration: transitionDuration(using: transitionContext), dampingRatio: dampingRatio)
         
         let operation: Operation = {
             if fromVC.presentedViewController === toVC {
@@ -64,15 +64,7 @@ extension LHZoomTransitionAnimationController: UIViewControllerAnimatedTransitio
             }
         }()
         
-        let removingPresentingView: Bool = {
-            switch operation {
-            case .present:
-                return [UIModalPresentationStyle.fullScreen, .currentContext].contains(toVC.modalPresentationStyle)
-            case .dismiss:
-                return [UIModalPresentationStyle.fullScreen, .currentContext].contains(fromVC.modalPresentationStyle)
-            }
-        }()
-            
+        let removingPresentingView = [.fullScreen, .currentContext].contains(transitionContext.presentationStyle)
         
         let toViewFinalFrame = transitionContext.finalFrame(for: toVC)
         switch operation {

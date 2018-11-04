@@ -20,7 +20,6 @@
 		71286C8D218B55E5007CCB03 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		71286C94218B5602007CCB03 /* LHZoomTransitionAnimationController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LHZoomTransitionAnimationController.swift; sourceTree = "<group>"; };
 		71286C9A218B5662007CCB03 /* LHConvenientMethods.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = LHConvenientMethods.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		71286C9C218B56AC007CCB03 /* LHZoomTransitionInteractionController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LHZoomTransitionInteractionController.swift; sourceTree = "<group>"; };
 		71E2F460218C33B200D19A70 /* LHZoomSegue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LHZoomSegue.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -58,7 +57,6 @@
 			isa = PBXGroup;
 			children = (
 				71286C94218B5602007CCB03 /* LHZoomTransitionAnimationController.swift */,
-				71286C9C218B56AC007CCB03 /* LHZoomTransitionInteractionController.swift */,
 				71E2F460218C33B200D19A70 /* LHZoomSegue.swift */,
 				71286C8C218B55E5007CCB03 /* LHZoomTransitionKit.h */,
 				71286C8D218B55E5007CCB03 /* Info.plist */,
