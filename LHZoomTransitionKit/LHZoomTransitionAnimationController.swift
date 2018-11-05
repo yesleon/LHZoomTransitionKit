@@ -10,7 +10,7 @@ import UIKit
 import LHConvenientMethods
 
 public protocol LHZoomTransitionTargetProviding: AnyObject {
-    func targetView(for animationController: LHZoomTransitionAnimationController, operation: LHZoomTransitionAnimationController.Operation) -> UIView?
+    func targetView(for animationController: LHZoomTransitionAnimationController, operation: LHZoomTransitionAnimationController.Operation, viewControllerKey: UITransitionContextViewControllerKey) -> UIView?
     func animationController(_ animationController: LHZoomTransitionAnimationController, willAnimate operation: LHZoomTransitionAnimationController.Operation)
     func animationController(_ animationController: LHZoomTransitionAnimationController, didAnimate operation: LHZoomTransitionAnimationController.Operation)
 }
@@ -111,8 +111,8 @@ extension LHZoomTransitionAnimationController: UIViewControllerAnimatedTransitio
             fromView.alpha = 0
         }
         
-        if let sourceTargetView = source.targetView(for: self, operation: operation),
-            let destinationTargetView = destination.targetView(for: self, operation: operation),
+        if let sourceTargetView = source.targetView(for: self, operation: operation, viewControllerKey: .from),
+            let destinationTargetView = destination.targetView(for: self, operation: operation, viewControllerKey: .to),
             let toViewSnapshot = toViewSnapshot, let fromViewSnapshot = fromViewSnapshot {
             
             let targetInitialFrame = sourceTargetView.convert(sourceTargetView.bounds, to: containerView)
